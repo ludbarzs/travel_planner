@@ -52,7 +52,7 @@ def parse_events(html):
     event_cards = soup.select("section[class*='event-card']")
     print(f"Found {len(event_cards)} event cards")
 
-    for card in event_cards[:50]:
+    for card in event_cards[:100]:
         try:
             event = {}
 
@@ -103,9 +103,6 @@ def parse_events(html):
             price_text = "Unknown"
             for el in card.select("p, span, div"):
                 txt = el.get_text(strip=True)
-                if "free" in txt.lower():
-                    price_text = "Free"
-                    break
                 if "$" in txt:
                     match = re.search(r"\$[\d,.]+", txt)
                     if match:
