@@ -99,6 +99,7 @@ def parse_events(html):
             event["location"] = location_text
 
             # Price
+            # Detection based on $ symbol
             price_text = "Unknown"
             for el in card.select("p, span, div"):
                 txt = el.get_text(strip=True)
@@ -146,6 +147,3 @@ if __name__ == "__main__":
         print(f"   When: {event.get('datetime', 'No date')}")
         print(f"   Where: {event.get('location', 'No location')}")
         print(f"   Price: {event.get('price', 'No price')}")
-        if "url" in event:
-            print(f"   URL: {event['url']}")
-
