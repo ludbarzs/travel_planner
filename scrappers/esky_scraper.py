@@ -22,26 +22,17 @@ def parse_flight_prices(html):
     soup = BeautifulSoup(html, "html.parser")
     flight_blocks = soup.find_all("so-fsr-flight-block")
     prices = []
-    links = []
 
     for block in flight_blocks:
         price_element = block.find("span", class_="amount")
         currency_element = block.find("span", class_="currency")
-        link_element = block.find("a")
 
         if price_element and currency_element:
             price = price_element.text.strip()
             currency = currency_element.text.strip()
             prices.append(f"{price} {currency}")
 
-            link = ""
-            if link_element and "href" in link_element.attrs:
-                link = link_element["href"]
-                if not link.startswith("http"):
-                    link = f"https://www.esky.com{link}"
-            links.append(link)
-
-    return prices, links
+    return prices
 
 
 def get_flight_prices(departure, destination, departure_date, return_date, seats):
@@ -51,8 +42,7 @@ def get_flight_prices(departure, destination, departure_date, return_date, seats
     )
     html = fetch_page_content(url)
     if html:
-        prices, links = parse_flight_prices(html)
-        return prices, links, url
+        prices = parse_flight_prices(html)
+        return prices, url
     else:
-        return [], [], url
-
+        return [], url

@@ -36,7 +36,7 @@ def main():
     )
     print(f"Passengers: {user_data['seats']}")
 
-    prices, links, search_url = get_flight_prices(
+    prices, search_url = get_flight_prices(
         departure_code,
         destination_code,
         user_data["departure_date"],
@@ -58,7 +58,6 @@ def main():
             user_data["return_date"],
             prices,
             user_data["seats"],
-            links,
         )
         print("\nPrices saved to database!")
     else:
@@ -77,4 +76,3 @@ def main():
 
 
 main()
-

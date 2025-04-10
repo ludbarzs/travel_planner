@@ -19,20 +19,6 @@ def initialize_db():
         price REAL,
         currency TEXT,
         seats INTEGER,
-        link TEXT,
-        search_date TEXT
-    )
-    """)
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS events (
-        id INTEGER PRIMARY KEY,
-        city TEXT,
-        event_name TEXT,
-        event_date TEXT,
-        price REAL,
-        currency TEXT,
-        link TEXT,
         search_date TEXT
     )
     """)
@@ -50,7 +36,6 @@ def save_flight_prices(
     return_date,
     prices,
     seats,
-    links=None,
 ):
     from datetime import datetime
 
@@ -58,11 +43,7 @@ def save_flight_prices(
     cursor = conn.cursor()
     search_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    if links is None:
-        links = [""] * len(prices)
-
     for i, price_str in enumerate(prices):
-        # Parse price and currency
         parts = price_str.strip().split()
         if len(parts) >= 2:
             try:
@@ -73,8 +54,8 @@ def save_flight_prices(
                     """
                 INSERT INTO flight_tickets 
                 (departure_city, departure_code, destination_city, destination_code, 
-                departure_date, return_date, price, currency, seats, link, search_date)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                departure_date, return_date, price, currency, seats, search_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
                         departure_city,
@@ -86,7 +67,6 @@ def save_flight_prices(
                         price,
                         currency,
                         seats,
-                        links[i] if i < len(links) else "",
                         search_date,
                     ),
                 )
