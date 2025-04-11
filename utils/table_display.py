@@ -54,6 +54,7 @@ def get_flights_table(limit=10, destination=None, departure=None):
             lambda row: f"{row['price']} {row['currency']}", axis=1
         )
 
+        # Format dates
         df["departure_date"] = pd.to_datetime(df["departure_date"]).dt.strftime(
             "%b %d, %Y"
         )
@@ -110,7 +111,7 @@ def get_events_table(city=None, limit=10):
     return df
 
 
-def print_flight_table(df, show_codes=True):
+def display_flight_table(df, show_codes=True):
     if df.empty:
         print("No flight data found.")
         return
@@ -145,18 +146,16 @@ def print_flight_table(df, show_codes=True):
 
     display_df = df[display_cols].rename(columns=rename_dict)
 
-    # Print the DataFrame
     print("\nFlight Search Results:")
     print(display_df.to_string(index=False))
     print(f"\nTotal flights found: {len(df)}")
 
 
-def print_event_table(df):
+def display_event_table(df):
     if df.empty:
         print("No event data found.")
         return
 
-    # Select and rename columns for display
     display_cols = ["city", "title", "datetime", "location", "price"]
     rename_dict = {
         "city": "City",
@@ -173,19 +172,18 @@ def print_event_table(df):
     print(f"\nTotal events found: {len(df)}")
 
 
-def combined_travel_table(destination, departure_date, return_date=None):
+def display_combined_table(destination, departure_date, return_date=None):
     flight_df = get_flights_table(limit=5, destination=destination)
-
     event_df = get_events_table(city=destination, limit=10)
 
     if flight_df.empty or event_df.empty:
         print(f"Not enough data for a combined travel plan to {destination}")
 
         if not flight_df.empty:
-            print_flight_table(flight_df)
+            display_flight_table(flight_df)
 
         if not event_df.empty:
-            print_event_table(event_df)
+            display_event_table(event_df)
 
         return
 
@@ -208,18 +206,5 @@ def combined_travel_table(destination, departure_date, return_date=None):
     print("\n=== Travel Plan Summary ===")
     print(travel_df.to_string(index=False))
 
-    print_flight_table(flight_df)
-    print_event_table(event_df.head())
-
-
-if __name__ == "__main__":
-    print("\nRecent flight searches:")
-    flight_df = get_flights_table(limit=5)
-    print_flight_table(flight_df)
-
-    print("\nEvents in popular destinations:")
-    event_df = get_events_table(limit=5)
-    print_event_table(event_df)
-
-    print("\nTravel plan for a specific destination:")
-    combined_travel_table("Riga", "2025-04-20")
+    display_flight_table(flight_df)
+    display_event_table(event_df.head())

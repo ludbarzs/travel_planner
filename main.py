@@ -3,17 +3,16 @@ import threading
 from scrappers.esky_scraper import get_flight_prices
 from scrappers.eventbrite_scraper import get_events
 from utils.database import (
-    get_saved_flights,
     initialize_db,
     save_events,
     save_flight_prices,
 )
 from utils.table_display import (
-    combined_travel_table,
+    display_combined_table,
+    display_event_table,
+    display_flight_table,
     get_events_table,
     get_flights_table,
-    print_event_table,
-    print_flight_table,
 )
 
 
@@ -64,8 +63,8 @@ def main():
 
     # user_data = get_user_input()
     user_data = {
-        "departure_city": "Malaga",
-        "destination_city": "Riga",
+        "departure_city": "Riga",
+        "destination_city": "New york",
         "departure_date": "2025-04-20",
         "return_date": "",
         "seats": "1",
@@ -84,6 +83,7 @@ def main():
 
     results = {"flight_prices": [], "flight_url": "", "events": [], "events_url": ""}
 
+    # Start scrapers in parallel threads
     flight_thread = threading.Thread(
         target=scrape_esky,
         args=(
@@ -107,12 +107,13 @@ def main():
     flight_thread.join()
     event_thread.join()
 
+    # Process flight results
     prices = results["flight_prices"]
     if prices:
-        print("\nPrices found:")
-        for i, price in enumerate(prices, 1):
-            print(f"{i}. {price}")
-
+        # print("\nPrices found:")
+        # for i, price in enumerate(prices, 1):
+        #     print(f"{i}. {price}")
+        #
         save_flight_prices(
             user_data["departure_city"],
             departure_code,
@@ -123,46 +124,35 @@ def main():
             prices,
             user_data["seats"],
         )
-        print("\nPrices saved to database!")
     else:
         print("\nNo flights found")
 
+    # Process event results
     events = results["events"]
     if events:
         print(f"\nFound {len(events)} events in {user_data['destination_city']}:")
-        for i, event in enumerate(events[:5], 1):  # Limit to first 5 events for display
-            print(f"\n{i}. {event.get('title', 'No title')}")
-            print(f"   When: {event.get('datetime', 'No date')}")
-            print(f"   Where: {event.get('location', 'No location')}")
-            print(f"   Price: {event.get('price', 'No price')}")
+        # for i, event in enumerate(events[:5], 1):  # Limit to first 5 events for display
+        # print(f"\n{i}. {event.get('title', 'No title')}")
+        # print(f"   When: {event.get('datetime', 'No date')}")
+        # print(f"   Where: {event.get('location', 'No location')}")
+        # print(f"   Price: {event.get('price', 'No price')}")
         save_events(user_data["destination_city"], events)
     else:
         print(f"\nNo events found in {user_data['destination_city']}")
 
-    # Display recent searches using traditional method
-    saved_flights = get_saved_flights(5)
-    if saved_flights:
-        print("\nRecent searches:")
-        for i, flight in enumerate(saved_flights, 1):
-            print(
-                f"{i}. {flight['departure_city']} to {flight['destination_city']} - "
-                f"{flight['price']} {flight['currency']} - {flight['departure_date']}"
-            )
-
-    # Display data using pandas tables
     print("\n========== PANDAS TABLE DISPLAY ==========")
 
     # Get flight data as DataFrame and display
     flight_df = get_flights_table(limit=5)
-    print_flight_table(flight_df)
+    display_flight_table(flight_df)
 
     # Get events data as DataFrame and display
     event_df = get_events_table(city=user_data["destination_city"], limit=5)
-    print_event_table(event_df)
+    display_event_table(event_df)
 
     # Show combined travel summary
     print("\n=== COMBINED TRAVEL SUMMARY ===")
-    combined_travel_table(
+    display_combined_table(
         user_data["destination_city"],
         user_data["departure_date"],
         user_data["return_date"],
