@@ -49,7 +49,7 @@ def save_flight_prices(
     destination_code,
     departure_date,
     return_date,
-    processed_prices,
+    prices,
     seats,
 ):
     from datetime import datetime
@@ -58,27 +58,36 @@ def save_flight_prices(
     cursor = conn.cursor()
     search_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    for price_data in processed_prices:
-        cursor.execute(
-            """
-            INSERT INTO flight_tickets 
-            (departure_city, departure_code, destination_city, destination_code, 
-            departure_date, return_date, price, currency, seats, search_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                departure_city,
-                departure_code,
-                destination_city,
-                destination_code,
-                departure_date,
-                return_date,
-                price_data["price"],
-                price_data["currency"],
-                seats,
-                search_date,
-            ),
-        )
+    for price_str in prices:
+        try:
+            # Parse the price string
+            parts = price_str.strip().split()
+            if len(parts) >= 2:
+                price = float(parts[0].replace(",", ""))
+                currency = parts[1]
+
+                cursor.execute(
+                    """
+                INSERT INTO flight_tickets 
+                (departure_city, departure_code, destination_city, destination_code, 
+                departure_date, return_date, price, currency, seats, search_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                    (
+                        departure_city,
+                        departure_code,
+                        destination_city,
+                        destination_code,
+                        departure_date,
+                        return_date,
+                        price,
+                        currency,
+                        seats,
+                        search_date,
+                    ),
+                )
+        except (ValueError, IndexError) as e:
+            print(f"Could not parse price: {price_str} - Error: {e}")
 
     conn.commit()
     conn.close()
@@ -214,4 +223,3 @@ def delete_old_data(days=30):
     conn.close()
 
     return deleted_rows
-
