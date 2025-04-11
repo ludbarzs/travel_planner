@@ -2,7 +2,12 @@ import threading
 
 from scrappers.esky_scraper import get_flight_prices
 from scrappers.eventbrite_scraper import get_events
-from utils.database import get_saved_flights, initialize_db, save_flight_prices
+from utils.database import (
+    get_saved_flights,
+    initialize_db,
+    save_events,
+    save_flight_prices,
+)
 
 
 def get_airport_code(city):
@@ -123,6 +128,7 @@ def main():
             print(f"   When: {event.get('datetime', 'No date')}")
             print(f"   Where: {event.get('location', 'No location')}")
             print(f"   Price: {event.get('price', 'No price')}")
+        save_events(user_data["destination_city"], events)
     else:
         print(f"\nNo events found in {user_data['destination_city']}")
 
