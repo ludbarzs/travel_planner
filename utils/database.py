@@ -49,7 +49,7 @@ def save_flight_prices(
     destination_code,
     departure_date,
     return_date,
-    prices,
+    processed_prices,
     seats,
 ):
     from datetime import datetime
@@ -58,35 +58,27 @@ def save_flight_prices(
     cursor = conn.cursor()
     search_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    for i, price_str in enumerate(prices):
-        parts = price_str.strip().split()
-        if len(parts) >= 2:
-            try:
-                price = float(parts[0].replace(",", ""))
-                currency = parts[1]
-
-                cursor.execute(
-                    """
-                INSERT INTO flight_tickets 
-                (departure_city, departure_code, destination_city, destination_code, 
-                departure_date, return_date, price, currency, seats, search_date)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                    (
-                        departure_city,
-                        departure_code,
-                        destination_city,
-                        destination_code,
-                        departure_date,
-                        return_date,
-                        price,
-                        currency,
-                        seats,
-                        search_date,
-                    ),
-                )
-            except ValueError:
-                print(f"Could not parse price: {price_str}")
+    for price_data in processed_prices:
+        cursor.execute(
+            """
+            INSERT INTO flight_tickets 
+            (departure_city, departure_code, destination_city, destination_code, 
+            departure_date, return_date, price, currency, seats, search_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                departure_city,
+                departure_code,
+                destination_city,
+                destination_code,
+                departure_date,
+                return_date,
+                price_data["price"],
+                price_data["currency"],
+                seats,
+                search_date,
+            ),
+        )
 
     conn.commit()
     conn.close()
@@ -113,8 +105,6 @@ def get_saved_flights(limit=10):
 
 
 def save_events(city, events):
-    from datetime import datetime
-
     if not events:
         return
 

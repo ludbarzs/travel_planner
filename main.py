@@ -2,6 +2,7 @@ import threading
 
 from scrappers.esky_scraper import get_flight_prices
 from scrappers.eventbrite_scraper import get_events
+from utils.data_processing import process_flight_prices
 from utils.database import (
     get_saved_flights,
     initialize_db,
@@ -31,7 +32,7 @@ def scrape_esky(
     departure_code, destination_code, departure_date, return_date, seats, results
 ):
     print("\nSearching for flights...")
-    prices, search_url = get_flight_prices(
+    raw_prices, search_url = get_flight_prices(
         departure_code,
         destination_code,
         departure_date,
@@ -39,7 +40,10 @@ def scrape_esky(
         seats,
     )
 
-    results["flight_prices"] = prices
+    # Process the raw price strings into structured data
+    processed_prices = process_flight_prices(raw_prices)
+
+    results["flight_prices"] = processed_prices
     results["flight_url"] = search_url
 
 
@@ -100,11 +104,14 @@ def main():
     flight_thread.join()
     event_thread.join()
 
-    prices = results["flight_prices"]
-    if prices:
+    processed_prices = results["flight_prices"]
+
+    if processed_prices:
         print("\nPrices found:")
-        for i, price in enumerate(prices, 1):
-            print(f"{i}. {price}")
+        for i, price_data in enumerate(processed_prices, 1):
+            print(
+                f"{i}. {price_data['price']} {price_data['currency']} ({price_data['original']})"
+            )
 
         save_flight_prices(
             user_data["departure_city"],
@@ -113,7 +120,7 @@ def main():
             destination_code,
             user_data["departure_date"],
             user_data["return_date"],
-            prices,
+            processed_prices,
             user_data["seats"],
         )
         print("\nPrices saved to database!")
@@ -146,3 +153,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
